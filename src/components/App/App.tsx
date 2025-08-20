@@ -48,7 +48,6 @@ export default function App() {
         <Modal onClose={closeModal}>
           <NoteForm
             onClose={closeModal}
-            onSuccess={() => setPage(1)}
           />
         </Modal>
       )}
