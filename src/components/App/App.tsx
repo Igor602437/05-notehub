@@ -7,22 +7,28 @@ import Pagination from '../Pagination/Pagination';
 import Modal from '../Modal/Modal';
 import NoteForm from '../NoteForm/NoteForm';
 import SearchBox from '../SearchBox/SearchBox';
-import { useDebounce } from 'use-debounce';
+import { useDebouncedCallback } from 'use-debounce';
+import Loader from '../Loader/Loader';
+import ErrorMessage from '../ErrorMessage/ErrorMessage';
 
 export default function App() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch] = useDebounce(search, 500);
+  const [searchValue, setSearchValue] = useState("");
   
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["myNotes", debouncedSearch, page],
-    queryFn: () => fetchNotes(debouncedSearch, page),
+    queryKey: ["myNotes", page, searchValue],
+    queryFn: () => fetchNotes(page, searchValue),
     enabled: page !== 0,
     placeholderData: keepPreviousData
   });
 
-  const totalPages = data?.totalPages ?? 0;
+  const totalPages = data?.totalPages || 1;
+
+  const handleSearch = useDebouncedCallback((search: string) => {
+    setSearchValue(search);
+    setPage(1);
+  }, 500);
 
   const openModal = ()=>setIsModalOpen(true)
   const closeModal = ()=>setIsModalOpen(false)
@@ -30,18 +36,19 @@ export default function App() {
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={search} onChange={setSearch} />
+        <SearchBox onChange={handleSearch} />
         {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onSelect={(page) => setPage(page)} />}
         <button className={css.button} onClick={openModal}>Create note +</button>
       </header>
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Something went wrong</p>}
-      {isSuccess && data?.notes.length === 0 && <p>No notes found</p>}
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage value='backend'/>}
+      {isSuccess && data?.notes.length === 0 && <ErrorMessage value='request'/>}
       {data?.notes && data?.notes.length > 0 && <NoteList notes={data.notes} />}
       {isModalOpen && (
         <Modal onClose={closeModal}>
           <NoteForm
             onClose={closeModal}
+            onSuccess={() => setPage(1)}
           />
         </Modal>
       )}

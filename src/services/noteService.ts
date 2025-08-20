@@ -12,14 +12,14 @@ interface FetchNotesResponse {
 }
 
 export async function fetchNotes(
-  query: string = '',
-  page: number
+  page: number,
+  query: string = ''
 ): Promise<FetchNotesResponse> {
   const axiosOptions = {
     params: {
-      search: query,
-      page,
       perPage: 12,
+      page,
+      search: query,
     },
   };
   const response = await axios.get<FetchNotesResponse>('/notes', axiosOptions);

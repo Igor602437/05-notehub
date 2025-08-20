@@ -7,6 +7,7 @@ import { createNote } from '../../services/noteService';
 
 interface NoteFormProps {
   onClose: () => void;
+  onSuccess: () => void;
 }
 
 const NoteFormSchema = Yup.object().shape({
@@ -21,7 +22,7 @@ const NoteFormSchema = Yup.object().shape({
     .required("Tag is required"),
 });
 
-export default function NoteForm({ onClose }: NoteFormProps) {
+export default function NoteForm({ onClose, onSuccess }: NoteFormProps) {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (newNote: NewNote) => createNote(newNote),
@@ -30,6 +31,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         queryKey: ['myNotes'],
       });
       onClose();
+      onSuccess();
     },
   })
 
@@ -48,7 +50,6 @@ export default function NoteForm({ onClose }: NoteFormProps) {
       }
     });
   }
-
   
   return (
     <Formik
@@ -105,4 +106,3 @@ export default function NoteForm({ onClose }: NoteFormProps) {
     </Formik>
   );
 }
-
